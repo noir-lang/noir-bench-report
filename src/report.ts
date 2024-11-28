@@ -1,16 +1,6 @@
 import _orderBy from "lodash/orderBy";
 
-import {
-  ContractDiffReport,
-  ContractReport,
-  DiffCircuit,
-  CircuitReport,
-  WorkspaceDiffReport,
-  WorkspaceReport,
-  ProgramReport,
-  BrilligReport,
-  DiffBrillig,
-} from "./types";
+import { MemoryReport } from "./types";
 
 export const variation = (current: number, previous: number) => {
   const delta = current - previous;
@@ -23,173 +13,70 @@ export const variation = (current: number, previous: number) => {
   };
 };
 
-export const loadReports = (content: string): WorkspaceReport => {
-  return JSON.parse(content);
+export const memoryReports = (content: string): MemoryReport[] => {
+  return JSON.parse(content).memory_reports;
 };
 
-export const computedWorkspaceDiff = (
-  sourceReport: WorkspaceReport,
-  compareReport: WorkspaceReport
-): WorkspaceDiffReport => {
-  const [diffCircuits, diffBrilligs] = computeProgramDiffs(
-    sourceReport.programs,
-    compareReport.programs
-  );
-  return {
-    programs: diffCircuits,
-    unconstrained_functions: diffBrilligs,
-    contracts: computeContractDiffs(sourceReport.contracts, compareReport.contracts),
-  };
-};
-
-export const computeProgramDiffs = (
-  sourceReports: ProgramReport[],
-  compareReports: ProgramReport[]
-): [DiffCircuit[], DiffBrillig[]] => {
-  const sourceReportNames = sourceReports.map((report) => report.package_name);
-  const commonReportNames = compareReports
-    .map((report) => report.package_name)
-    .filter((name) => sourceReportNames.includes(name));
-
-  const diffCircuits = commonReportNames
-    .map((reportName) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const srcReport = sourceReports.find((report) => report.package_name == reportName)!;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const cmpReport = compareReports.find((report) => report.package_name == reportName)!;
-
-      // For now we fetch just the main of each program
-      return computeCircuitDiff(srcReport.functions[0], cmpReport.functions[0], reportName);
-    })
-    .filter((diff) => !isEmptyDiff(diff))
-    .sort(
-      (diff1, diff2) =>
-        Math.max(diff2.circuit_size.percentage) - Math.max(diff1.circuit_size.percentage)
+export const formatMemoryReport = (memReports: MemoryReport[]): string => {
+  let markdown = "## Peak Memory Sample\n | Program | Peak Memory |\n | --- | --- |\n";
+  for (let i = 0; i < memReports.length; i++) {
+    markdown = markdown.concat(
+      " | ",
+      memReports[i].artifact_name,
+      " | ",
+      memReports[i].peak_memory,
+      " |\n"
     );
+  }
+  return markdown;
+};
 
-  const diffBrilligs = commonReportNames
-    .map((reportName) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const srcReport = sourceReports.find((report) => report.package_name == reportName)!;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const cmpReport = compareReports.find((report) => report.package_name == reportName)!;
-
-      if (
-        srcReport.unconstrained_functions.length === 0 ||
-        cmpReport.unconstrained_functions.length === 0
-      ) {
-        return {
-          name: "",
-          opcodes: {
-            previous: 0,
-            current: 0,
-            delta: 0,
-            percentage: 0,
-          },
-        };
+export const computeMemoryDiff = (
+  refReports: MemoryReport[],
+  memReports: MemoryReport[]
+): string => {
+  let markdown = "";
+  const diff_percentage = [];
+  let diff_column = false;
+  if (refReports.length === memReports.length) {
+    for (let i = 0; i < refReports.length; i++) {
+      let diff_str = "N/A";
+      if (refReports[i].artifact_name === memReports[i].artifact_name) {
+        const compPeak = memReports[i].peak_memory;
+        const refPeak = refReports[i].peak_memory;
+        let diff = 0;
+        if (compPeak[compPeak.length - 1] == refPeak[refPeak.length - 1]) {
+          const compPeakValue = parseInt(compPeak.substring(0, compPeak.length - 1));
+          const refPeakValue = parseInt(refPeak.substring(0, refPeak.length - 1));
+          diff = Math.floor(((compPeakValue - refPeakValue) / refPeakValue) * 100);
+        } else {
+          diff = 100;
+        }
+        if (diff != 0) {
+          diff_column = true;
+        }
+        diff_str = diff.toString() + "%";
       }
-      // For now we fetch just the main of each program
-      return computeUnconstrainedDiff(
-        srcReport.unconstrained_functions[0],
-        cmpReport.unconstrained_functions[0],
-        reportName
+      diff_percentage.push(diff_str);
+    }
+  }
+
+  if (diff_column == true) {
+    markdown = "## Peak Memory Sample\n | Program | Peak Memory | % |\n | --- | --- | --- |\n";
+    for (let i = 0; i < memReports.length; i++) {
+      markdown = markdown.concat(
+        " | ",
+        memReports[i].artifact_name,
+        " | ",
+        memReports[i].peak_memory,
+        " | ",
+        diff_percentage[i],
+        " |\n"
       );
-    })
-    .filter((diff) => !isEmptyDiffBrillig(diff))
-    .sort(
-      (diff1, diff2) => Math.max(diff2.opcodes.percentage) - Math.max(diff1.opcodes.percentage)
-    );
+    }
+  } else {
+    markdown = formatMemoryReport(memReports);
+  }
 
-  return [diffCircuits, diffBrilligs];
-};
-
-const computeCircuitDiff = (
-  sourceReport: CircuitReport,
-  compareReport: CircuitReport,
-  // We want the name of the package that represents the entire program in our report
-  reportName: string
-): DiffCircuit => {
-  return {
-    name: reportName,
-    opcodes: variation(compareReport.opcodes, sourceReport.opcodes),
-    circuit_size: variation(compareReport.circuit_size, sourceReport.circuit_size),
-  };
-};
-
-const computeUnconstrainedDiff = (
-  sourceReport: BrilligReport,
-  compareReport: BrilligReport,
-  // We want the name of the package that represents the entire program in our report
-  reportName: string
-): DiffBrillig => {
-  return {
-    name: reportName,
-    opcodes: variation(compareReport.opcodes, sourceReport.opcodes),
-  };
-};
-
-const isEmptyDiff = (diff: DiffCircuit): boolean =>
-  diff.opcodes.delta === 0 && diff.circuit_size.delta === 0;
-
-const isEmptyDiffBrillig = (diff: DiffBrillig): boolean => diff.opcodes.delta === 0;
-
-export const computeContractDiffs = (
-  sourceReports: ContractReport[],
-  compareReports: ContractReport[]
-): ContractDiffReport[] => {
-  const sourceReportNames = sourceReports.map((report) => report.name);
-  const commonReportNames = compareReports
-    .map((report) => report.name)
-    .filter((name) => sourceReportNames.includes(name));
-
-  return commonReportNames
-    .map((reportName) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const srcReport = sourceReports.find((report) => report.name == reportName)!;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const cmpReport = compareReports.find((report) => report.name == reportName)!;
-
-      return computeContractDiff(srcReport, cmpReport);
-    })
-    .filter((diff) => diff.functions.length > 0)
-    .sort(
-      (diff1, diff2) =>
-        Math.max(
-          ...diff2.functions.map((functionDiff) => Math.abs(functionDiff.circuit_size.percentage))
-        ) -
-        Math.max(
-          ...diff1.functions.map((functionDiff) => Math.abs(functionDiff.circuit_size.percentage))
-        )
-    );
-};
-
-const computeContractDiff = (
-  sourceReport: ContractReport,
-  compareReport: ContractReport
-): ContractDiffReport => {
-  // TODO(https://github.com/noir-lang/noir/issues/4720): Settle on how to display contract functions with non-inlined Acir calls
-  // Right now we assume each contract function does not have non-inlined functions.
-  // Thus, we simply re-assign each `CircuitReport` to a `ProgramReport` to easily reuse `computeProgramDiffs`
-  const sourceFunctionsAsProgram = sourceReport.functions.map((func) => {
-    const programReport: ProgramReport = {
-      package_name: func.name,
-      functions: [func],
-      unconstrained_functions: [],
-    };
-    return programReport;
-  });
-  const compareFunctionsAsProgram = compareReport.functions.map((func) => {
-    const programReport: ProgramReport = {
-      package_name: func.name,
-      functions: [func],
-      unconstrained_functions: [],
-    };
-    return programReport;
-  });
-  const [functionDiffs] = computeProgramDiffs(sourceFunctionsAsProgram, compareFunctionsAsProgram);
-
-  return {
-    name: sourceReport.name,
-    functions: functionDiffs,
-  };
+  return markdown;
 };

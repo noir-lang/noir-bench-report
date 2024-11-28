@@ -6,25 +6,13 @@ import * as artifact from "@actions/artifact";
 import * as core from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 
-import {
-  formatBrilligRows,
-  formatCircuitRows,
-  formatMarkdownDiff,
-  formatShellBrilligRows,
-  formatShellCircuitRows,
-  formatShellDiff,
-  formatShellDiffBrillig,
-} from "./format/program";
-import { loadReports, computeProgramDiffs } from "./report";
+import { memoryReports, computeMemoryDiff } from "./report";
 
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
 const header = core.getInput("header");
-const brillig_report = core.getInput("brillig_report");
-const brillig_report_bytes = core.getInput("brillig_report_bytes");
-const summaryQuantile = parseFloat(core.getInput("summaryQuantile"));
-// const sortCriteria = core.getInput("sortCriteria").split(",");
-// const sortOrders = core.getInput("sortOrders").split(",");
+const memory_report = core.getInput("memory_report");
+
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
 
@@ -39,15 +27,15 @@ const { owner, repo } = context.repo;
 const repository = owner + "/" + repo;
 
 let referenceContent: string;
+let compareContent: string;
 let refCommitHash: string | undefined;
 
 async function run() {
-  // if (!isSortCriteriaValid(sortCriteria)) return;
-  // if (!isSortOrdersValid(sortOrders)) return;
-
   try {
     // Upload the gates report to be used as a reference in later runs.
     await uploadArtifact();
+    core.info(`Loading reports from "${localReportPath}"`);
+    compareContent = fs.readFileSync(localReportPath, "utf8");
   } catch (error) {
     return core.setFailed((error as Error).message);
   }
@@ -59,17 +47,20 @@ async function run() {
       core.startGroup(
         `Searching artifact "${baseReport}" on repository "${repository}", on branch "${baseBranch}"`
       );
-
+      let count = 100;
       let artifactId: number | null = null;
       // Artifacts are returned in most recent first order.
       for await (const res of octokit.paginate.iterator(octokit.rest.actions.listArtifactsForRepo, {
         owner,
         repo,
       })) {
+        if (count == 0) {
+          break;
+        }
         const artifact = res.data.find(
           (artifact) => !artifact.expired && artifact.name === baseReport
         );
-
+        count = count - 1;
         if (!artifact) {
           await new Promise((resolve) => setTimeout(resolve, 900)); // avoid reaching the API rate limit
 
@@ -98,7 +89,7 @@ async function run() {
 
         const zip = new Zip(Buffer.from(res.data as ArrayBuffer));
         for (const entry of zip.getEntries()) {
-          core.info(`Loading gas reports from "${entry.entryName}"`);
+          core.info(`Loading reports from "${entry.entryName}"`);
           referenceContent = zip.readAsText(entry);
         }
         core.endGroup();
@@ -109,89 +100,18 @@ async function run() {
   }
 
   try {
-    core.startGroup("Load gas reports");
-    core.info(`Loading gas reports from "${localReportPath}"`);
-    const compareContent = fs.readFileSync(localReportPath, "utf8");
-    referenceContent ??= compareContent; // if no source gas reports were loaded, defaults to the current gas reports
+    core.startGroup("Load reports");
+    referenceContent ??= compareContent; // if no source reports were loaded, defaults to the current reports
 
-    core.info(`Mapping compared gas reports`);
-    const compareReports = loadReports(compareContent);
-    core.info(`Got ${compareReports.programs.length} compare programs`);
-
-    core.info(`Mapping reference gas reports`);
-    const referenceReports = loadReports(referenceContent);
-    core.info(`Got ${compareReports.programs.length} reference programs`);
-    core.endGroup();
-
-    core.startGroup("Compute gas diff");
-    const [diffCircuitRows, diffBrilligRows] = computeProgramDiffs(
-      referenceReports.programs,
-      compareReports.programs
-    );
-
-    let numDiffs = diffCircuitRows.length;
-    let summaryRows;
-    let fullReportRows;
-    if (brillig_report) {
-      numDiffs = diffBrilligRows.length;
-      core.info(`Format Brillig markdown rows`);
-      [summaryRows, fullReportRows] = formatBrilligRows(diffBrilligRows, summaryQuantile);
-    } else {
-      core.info(`Format ACIR markdown rows`);
-      [summaryRows, fullReportRows] = formatCircuitRows(diffCircuitRows, summaryQuantile);
-    }
-
-    core.info(`Format markdown of ${numDiffs} diffs`);
-    // const [summaryRows, fullReportRows] = formatCircuitRows(diffCircuitRows, summaryQuantile);
-    const markdown = formatMarkdownDiff(
-      header,
-      repository,
-      context.sha,
-      summaryRows,
-      fullReportRows,
-      !brillig_report,
-      brillig_report_bytes == "true",
-      refCommitHash,
-      summaryQuantile
-    );
-    core.info(`Format shell of ${numDiffs} diffs`);
-
-    let shell;
-    if (brillig_report) {
-      core.info(`Format Brillig diffs`);
-      const [summaryRowsShell, fullReportRowsShell] = formatShellBrilligRows(
-        diffBrilligRows,
-        summaryQuantile
-      );
-      shell = formatShellDiffBrillig(
-        diffCircuitRows,
-        summaryRowsShell,
-        fullReportRowsShell,
-        brillig_report_bytes == "true",
-        summaryQuantile
-      );
-    } else {
-      core.info(`Format ACIR diffs`);
-      const [summaryRowsShell, fullReportRowsShell] = formatShellCircuitRows(
-        diffCircuitRows,
-        summaryQuantile
-      );
-      shell = formatShellDiff(
-        diffCircuitRows,
-        summaryRowsShell,
-        fullReportRowsShell,
-        summaryQuantile
-      );
-    }
-
-    core.endGroup();
-
-    console.log(shell);
-
-    if (numDiffs > 0) {
-      core.setOutput("shell", shell);
+    if (memory_report) {
+      core.info(`Format Memory markdown rows`);
+      const memoryContent = memoryReports(compareContent);
+      const referenceReports = memoryReports(referenceContent);
+      const markdown = computeMemoryDiff(referenceReports, memoryContent);
       core.setOutput("markdown", markdown);
     }
+
+    core.endGroup();
   } catch (error) {
     core.setFailed((error as Error).message);
   }
