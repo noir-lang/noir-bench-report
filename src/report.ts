@@ -1,6 +1,6 @@
 import _orderBy from "lodash/orderBy";
 
-import { MemoryReport } from "./types";
+import { CompilationReport, MemoryReport } from "./types";
 
 export const variation = (current: number, previous: number) => {
   const delta = current - previous;
@@ -15,6 +15,10 @@ export const variation = (current: number, previous: number) => {
 
 export const memoryReports = (content: string): MemoryReport[] => {
   return JSON.parse(content).memory_reports;
+};
+
+export const compilationReports = (content: string): CompilationReport[] => {
+  return JSON.parse(content).compilation_reports;
 };
 
 export const formatMemoryReport = (memReports: MemoryReport[]): string => {

@@ -15,4 +15,3 @@ export interface CompilationReport {
 export interface CompilationReports {
   compilation_reports: CompilationReport[];
 }
-
