@@ -28,6 +28,7 @@ export const computeCompilationDiff = (
   if (refReports.length === compilationReports.length) {
     for (let i = 0; i < refReports.length; i++) {
       let diff_str = "N/A";
+      let minSeconds = 0;
       if (refReports[i].artifact_name === compilationReports[i].artifact_name) {
         const compTimeString = compilationReports[i].time;
         const refTimeString = refReports[i].time;
@@ -49,27 +50,35 @@ export const computeCompilationDiff = (
           refSecondsString.substring(0, refSecondsString.length - 1)
         );
         const refSeconds = refMinutesValue * 60 + refSecondsValue;
+        minSeconds = Math.min(refSeconds, compSeconds);
 
         const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
-        if (diff != 0 && refSeconds > 1 && compSeconds > 1) {
+        if (diff != 0) {
           diff_column = true;
         }
         diff_str = diff.toString() + "%";
       }
-      diff_percentage.push(diff_str);
+
+      // Reports under one seconds can often vary in their diff percentage by quite a bit more (e.g. .2 ms to .25 ms),
+      // which can make it more difficult to interpret the output
+      if (minSeconds > 1) {
+        diff_percentage.push({ report_index: i, diff_str: diff_str });
+      }
     }
   }
-  console.log("diff_column: ", diff_column);
+
   if (diff_column == true) {
     markdown = "## Compilation Sample\n | Program | Compilation Time | % |\n | --- | --- | --- |\n";
-    for (let i = 0; i < compilationReports.length; i++) {
+    for (let i = 0; i < diff_percentage.length; i++) {
+      const diffRow = diff_percentage[i];
+      const reportIndex = diffRow.report_index;
       markdown = markdown.concat(
         " | ",
-        compilationReports[i].artifact_name,
+        compilationReports[reportIndex].artifact_name,
         " | ",
-        compilationReports[i].time,
+        compilationReports[reportIndex].time,
         " | ",
-        diff_percentage[i],
+        diffRow.diff_str,
         " |\n"
       );
     }
