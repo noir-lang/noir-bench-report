@@ -10,7 +10,6 @@ import { memoryReports, computeMemoryDiff } from "./report";
 
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
-const header = core.getInput("header");
 const memory_report = core.getInput("memory_report");
 
 const baseBranch = core.getInput("base");

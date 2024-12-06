@@ -58,7 +58,6 @@ const github_1 = __nccwpck_require__(5438);
 const report_1 = __nccwpck_require__(8269);
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
-const header = core.getInput("header");
 const memory_report = core.getInput("memory_report");
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
