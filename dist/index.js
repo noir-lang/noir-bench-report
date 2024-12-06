@@ -192,7 +192,7 @@ run();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.computeMemoryDiff = exports.formatMemoryReport = exports.memoryReports = exports.variation = void 0;
+exports.computeMemoryDiff = exports.formatMemoryReport = exports.compilationReports = exports.memoryReports = exports.variation = void 0;
 const variation = (current, previous) => {
     const delta = current - previous;
     return {
@@ -207,6 +207,10 @@ const memoryReports = (content) => {
     return JSON.parse(content).memory_reports;
 };
 exports.memoryReports = memoryReports;
+const compilationReports = (content) => {
+    return JSON.parse(content).compilation_reports;
+};
+exports.compilationReports = compilationReports;
 const formatMemoryReport = (memReports) => {
     let markdown = "## Peak Memory Sample\n | Program | Peak Memory |\n | --- | --- |\n";
     for (let i = 0; i < memReports.length; i++) {
