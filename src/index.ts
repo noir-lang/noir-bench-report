@@ -103,15 +103,13 @@ async function run() {
     core.startGroup("Load reports");
     referenceContent ??= compareContent; // if no source reports were loaded, defaults to the current reports
     core.info("About to check memory reports");
-    core.info(`memory report: ${memory_report}`);
+    const isMemoryReport = memory_report === "true";
+    core.info(`memory report: ${isMemoryReport}`);
     core.info(`compareContent: ${compareContent}`);
     core.info(`referenceContent: ${referenceContent}`);
-    const isMemoryReport = Boolean(memory_report);
+
     if (isMemoryReport) {
       core.info(`Format Memory markdown rows`);
-      core.info(`Got here`);
-      core.info(`compareContent: ${compareContent}`);
-      core.info(`referenceContent: ${referenceContent}`);
       const memoryContent = memoryReports(compareContent);
       const referenceReports = memoryReports(referenceContent);
       const markdown = computeMemoryDiff(referenceReports, memoryContent);
