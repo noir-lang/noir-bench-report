@@ -220,6 +220,8 @@ function run() {
         try {
             core.startGroup("Load reports");
             referenceContent !== null && referenceContent !== void 0 ? referenceContent : (referenceContent = compareContent); // if no source reports were loaded, defaults to the current reports
+            core.info("About to check memory reports");
+            core.info("memory report ${memory_report}");
             if (memory_report) {
                 core.info(`Format Memory markdown rows`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
