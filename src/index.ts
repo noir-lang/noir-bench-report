@@ -108,11 +108,16 @@ async function run() {
     core.info(`referenceContent: ${referenceContent}`);
     if (memory_report) {
       core.info(`Format Memory markdown rows`);
+      core.info(`Got here`);
+      core.info(`compareContent: ${compareContent}`);
+      core.info(`referenceContent: ${referenceContent}`);
       const memoryContent = memoryReports(compareContent);
       const referenceReports = memoryReports(referenceContent);
       const markdown = computeMemoryDiff(referenceReports, memoryContent);
       core.setOutput("markdown", markdown);
-    } else {
+    }
+
+    if (!memory_report) {
       core.info(`Format Compilation report markdown rows`);
       core.info(`Got here`);
       core.info(`compareContent: ${compareContent}`);

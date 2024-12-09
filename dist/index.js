@@ -226,12 +226,15 @@ function run() {
             core.info(`referenceContent: ${referenceContent}`);
             if (memory_report) {
                 core.info(`Format Memory markdown rows`);
+                core.info(`Got here`);
+                core.info(`compareContent: ${compareContent}`);
+                core.info(`referenceContent: ${referenceContent}`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
                 const referenceReports = (0, report_1.memoryReports)(referenceContent);
                 const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent);
                 core.setOutput("markdown", markdown);
             }
-            else {
+            if (!memory_report) {
                 core.info(`Format Compilation report markdown rows`);
                 core.info(`Got here`);
                 core.info(`compareContent: ${compareContent}`);
