@@ -224,7 +224,8 @@ function run() {
             core.info(`memory report: ${memory_report}`);
             core.info(`compareContent: ${compareContent}`);
             core.info(`referenceContent: ${referenceContent}`);
-            if (memory_report) {
+            const isMemoryReport = Boolean(memory_report);
+            if (isMemoryReport) {
                 core.info(`Format Memory markdown rows`);
                 core.info(`Got here`);
                 core.info(`compareContent: ${compareContent}`);
@@ -234,7 +235,7 @@ function run() {
                 const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent);
                 core.setOutput("markdown", markdown);
             }
-            if (!memory_report) {
+            else {
                 core.info(`Format Compilation report markdown rows`);
                 core.info(`Got here`);
                 core.info(`compareContent: ${compareContent}`);
