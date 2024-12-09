@@ -1,0 +1,22 @@
+{"compilation_reports": [ 
+ {
+    "artifact_name":"keccak256",
+    "time":"0m0.325s"
+
+}, 
+ {
+    "artifact_name":"workspace",
+    "time":"0m0.300s"
+
+}, 
+ {
+    "artifact_name":"regression_4709",
+    "time":"0m1.842s"
+
+}, 
+ {
+    "artifact_name":"ram_blowup_regression",
+    "time":"0m20.526s"
+
+}
+]}

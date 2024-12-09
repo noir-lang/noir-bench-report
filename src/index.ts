@@ -6,7 +6,8 @@ import * as artifact from "@actions/artifact";
 import * as core from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 
-import { memoryReports, computeMemoryDiff } from "./report";
+import { computeCompilationDiff } from "./compilation_report";
+import { memoryReports, computeMemoryDiff, compilationReports } from "./report";
 
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
@@ -101,12 +102,20 @@ async function run() {
   try {
     core.startGroup("Load reports");
     referenceContent ??= compareContent; // if no source reports were loaded, defaults to the current reports
+    core.info("About to check memory reports");
 
-    if (memory_report) {
+    const isMemoryReport = memory_report === "true";
+    if (isMemoryReport) {
       core.info(`Format Memory markdown rows`);
       const memoryContent = memoryReports(compareContent);
       const referenceReports = memoryReports(referenceContent);
       const markdown = computeMemoryDiff(referenceReports, memoryContent);
+      core.setOutput("markdown", markdown);
+    } else {
+      core.info(`Format Compilation report markdown rows`);
+      const compilationContent = compilationReports(compareContent);
+      const referenceReports = compilationReports(referenceContent);
+      const markdown = computeCompilationDiff(referenceReports, compilationContent);
       core.setOutput("markdown", markdown);
     }
 

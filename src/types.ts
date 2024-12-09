@@ -6,3 +6,12 @@ export interface MemoryReport {
 export interface MemoryReports {
   memory_reports: MemoryReport[];
 }
+
+export interface CompilationReport {
+  artifact_name: string;
+  time: string;
+}
+
+export interface CompilationReports {
+  compilation_reports: CompilationReport[];
+}

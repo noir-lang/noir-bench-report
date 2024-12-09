@@ -1,6 +1,72 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 6423:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.computeCompilationDiff = exports.formatCompilationReport = exports.compilationReports = void 0;
+const compilationReports = (content) => {
+    return JSON.parse(content).compilation_reports;
+};
+exports.compilationReports = compilationReports;
+const formatCompilationReport = (compilationReports) => {
+    let markdown = "## Compilation Sample\n | Program | Compilation Time |\n | --- | --- |\n";
+    for (let i = 0; i < compilationReports.length; i++) {
+        markdown = markdown.concat(" | ", compilationReports[i].artifact_name, " | ", compilationReports[i].time, " |\n");
+    }
+    return markdown;
+};
+exports.formatCompilationReport = formatCompilationReport;
+const computeCompilationDiff = (refReports, compilationReports) => {
+    let markdown = "";
+    const diff_percentage = [];
+    let diff_column = false;
+    if (refReports.length === compilationReports.length) {
+        for (let i = 0; i < refReports.length; i++) {
+            let diff_str = "N/A";
+            if (refReports[i].artifact_name === compilationReports[i].artifact_name) {
+                const compTimeString = compilationReports[i].time;
+                const refTimeString = refReports[i].time;
+                const compTimeSegments = compTimeString.split("m");
+                const refTimeSegments = refTimeString.split("m");
+                const minutesString = compTimeSegments[0];
+                const refMinutesString = refTimeSegments[0];
+                const compMinutesValue = parseInt(minutesString);
+                const refMinutesValue = parseInt(refMinutesString);
+                const secondsString = compTimeSegments[1];
+                const compSecondsValue = parseFloat(secondsString.substring(0, secondsString.length - 1));
+                const compSeconds = compMinutesValue * 60 + compSecondsValue;
+                const refSecondsString = refTimeSegments[1];
+                const refSecondsValue = parseFloat(refSecondsString.substring(0, refSecondsString.length - 1));
+                const refSeconds = refMinutesValue * 60 + refSecondsValue;
+                const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
+                if (diff != 0) {
+                    diff_column = true;
+                }
+                diff_str = diff.toString() + "%";
+            }
+            diff_percentage.push(diff_str);
+        }
+    }
+    if (diff_column == true) {
+        markdown = "## Compilation Sample\n | Program | Compilation Time | % |\n | --- | --- | --- |\n";
+        for (let i = 0; i < diff_percentage.length; i++) {
+            markdown = markdown.concat(" | ", compilationReports[i].artifact_name, " | ", compilationReports[i].time, " | ", diff_percentage[i], " |\n");
+        }
+    }
+    else {
+        markdown = (0, exports.formatCompilationReport)(compilationReports);
+    }
+    return markdown;
+};
+exports.computeCompilationDiff = computeCompilationDiff;
+
+
+/***/ }),
+
 /***/ 4822:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -55,6 +121,7 @@ const path_1 = __nccwpck_require__(1017);
 const artifact = __importStar(__nccwpck_require__(2605));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
+const compilation_report_1 = __nccwpck_require__(6423);
 const report_1 = __nccwpck_require__(8269);
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
@@ -153,11 +220,20 @@ function run() {
         try {
             core.startGroup("Load reports");
             referenceContent !== null && referenceContent !== void 0 ? referenceContent : (referenceContent = compareContent); // if no source reports were loaded, defaults to the current reports
-            if (memory_report) {
+            core.info("About to check memory reports");
+            const isMemoryReport = memory_report === "true";
+            if (isMemoryReport) {
                 core.info(`Format Memory markdown rows`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
                 const referenceReports = (0, report_1.memoryReports)(referenceContent);
                 const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent);
+                core.setOutput("markdown", markdown);
+            }
+            else {
+                core.info(`Format Compilation report markdown rows`);
+                const compilationContent = (0, report_1.compilationReports)(compareContent);
+                const referenceReports = (0, report_1.compilationReports)(referenceContent);
+                const markdown = (0, compilation_report_1.computeCompilationDiff)(referenceReports, compilationContent);
                 core.setOutput("markdown", markdown);
             }
             core.endGroup();
@@ -192,7 +268,7 @@ run();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.computeMemoryDiff = exports.formatMemoryReport = exports.memoryReports = exports.variation = void 0;
+exports.computeMemoryDiff = exports.formatMemoryReport = exports.compilationReports = exports.memoryReports = exports.variation = void 0;
 const variation = (current, previous) => {
     const delta = current - previous;
     return {
@@ -207,6 +283,10 @@ const memoryReports = (content) => {
     return JSON.parse(content).memory_reports;
 };
 exports.memoryReports = memoryReports;
+const compilationReports = (content) => {
+    return JSON.parse(content).compilation_reports;
+};
+exports.compilationReports = compilationReports;
 const formatMemoryReport = (memReports) => {
     let markdown = "## Peak Memory Sample\n | Program | Peak Memory |\n | --- | --- |\n";
     for (let i = 0; i < memReports.length; i++) {
