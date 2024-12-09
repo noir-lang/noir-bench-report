@@ -103,7 +103,7 @@ async function run() {
     core.startGroup("Load reports");
     referenceContent ??= compareContent; // if no source reports were loaded, defaults to the current reports
     core.info("About to check memory reports");
-    core.info("memory report ${memory_report}");
+    core.info(`memory report ${memory_report}"`);
 
     if (memory_report) {
       core.info(`Format Memory markdown rows`);
