@@ -221,7 +221,9 @@ function run() {
             core.startGroup("Load reports");
             referenceContent !== null && referenceContent !== void 0 ? referenceContent : (referenceContent = compareContent); // if no source reports were loaded, defaults to the current reports
             core.info("About to check memory reports");
-            core.info(`memory report ${memory_report}"`);
+            core.info(`memory report: ${memory_report}`);
+            core.info(`compareContent: ${compareContent}`);
+            core.info(`referenceContent: ${referenceContent}`);
             if (memory_report) {
                 core.info(`Format Memory markdown rows`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
@@ -231,6 +233,9 @@ function run() {
             }
             else {
                 core.info(`Format Compilation report markdown rows`);
+                core.info(`Got here`);
+                core.info(`compareContent: ${compareContent}`);
+                core.info(`referenceContent: ${referenceContent}`);
                 const compilationContent = (0, report_1.compilationReports)(compareContent);
                 const referenceReports = (0, report_1.compilationReports)(referenceContent);
                 const markdown = (0, compilation_report_1.computeCompilationDiff)(referenceReports, compilationContent);
