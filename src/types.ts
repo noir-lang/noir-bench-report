@@ -15,3 +15,12 @@ export interface CompilationReport {
 export interface CompilationReports {
   compilation_reports: CompilationReport[];
 }
+
+export interface ExecutionReport {
+  artifact_name: string;
+  time: string;
+}
+
+export interface ExecutionReports {
+  compilation_reports: ExecutionReport[];
+}

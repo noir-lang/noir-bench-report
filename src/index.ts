@@ -7,11 +7,13 @@ import * as core from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 
 import { computeCompilationDiff } from "./compilation_report";
+import { computeExecutionDiff, executionReports } from "./execution_report";
 import { memoryReports, computeMemoryDiff, compilationReports } from "./report";
 
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
 const memory_report = core.getInput("memory_report");
+const execution_report = core.getInput("execution_report");
 
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
@@ -105,11 +107,18 @@ async function run() {
     core.info("About to check memory reports");
 
     const isMemoryReport = memory_report === "true";
+    const isExecutionReport = execution_report === "true";
     if (isMemoryReport) {
       core.info(`Format Memory markdown rows`);
       const memoryContent = memoryReports(compareContent);
       const referenceReports = memoryReports(referenceContent);
       const markdown = computeMemoryDiff(referenceReports, memoryContent);
+      core.setOutput("markdown", markdown);
+    } else if (isExecutionReport) {
+      core.info(`Format Execution report markdown rows`);
+      const compilationContent = executionReports(compareContent);
+      const referenceReports = executionReports(referenceContent);
+      const markdown = computeExecutionDiff(referenceReports, compilationContent);
       core.setOutput("markdown", markdown);
     } else {
       core.info(`Format Compilation report markdown rows`);
