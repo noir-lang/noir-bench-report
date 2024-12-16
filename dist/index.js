@@ -67,6 +67,72 @@ exports.computeCompilationDiff = computeCompilationDiff;
 
 /***/ }),
 
+/***/ 1233:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.computeExecutionDiff = exports.formatExecutionReport = exports.executionReports = void 0;
+const executionReports = (content) => {
+    return JSON.parse(content).execution_reports;
+};
+exports.executionReports = executionReports;
+const formatExecutionReport = (executionReports) => {
+    let markdown = "## Execution Sample\n | Program | Execution Time |\n | --- | --- |\n";
+    for (let i = 0; i < executionReports.length; i++) {
+        markdown = markdown.concat(" | ", executionReports[i].artifact_name, " | ", executionReports[i].time, " |\n");
+    }
+    return markdown;
+};
+exports.formatExecutionReport = formatExecutionReport;
+const computeExecutionDiff = (refReports, executionReports) => {
+    let markdown = "";
+    const diff_percentage = [];
+    let diff_column = false;
+    if (refReports.length === executionReports.length) {
+        for (let i = 0; i < refReports.length; i++) {
+            let diff_str = "N/A";
+            if (refReports[i].artifact_name === executionReports[i].artifact_name) {
+                const compTimeString = executionReports[i].time;
+                const refTimeString = refReports[i].time;
+                const compTimeSegments = compTimeString.split("m");
+                const refTimeSegments = refTimeString.split("m");
+                const minutesString = compTimeSegments[0];
+                const refMinutesString = refTimeSegments[0];
+                const compMinutesValue = parseInt(minutesString);
+                const refMinutesValue = parseInt(refMinutesString);
+                const secondsString = compTimeSegments[1];
+                const compSecondsValue = parseFloat(secondsString.substring(0, secondsString.length - 1));
+                const compSeconds = compMinutesValue * 60 + compSecondsValue;
+                const refSecondsString = refTimeSegments[1];
+                const refSecondsValue = parseFloat(refSecondsString.substring(0, refSecondsString.length - 1));
+                const refSeconds = refMinutesValue * 60 + refSecondsValue;
+                const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
+                if (diff != 0) {
+                    diff_column = true;
+                }
+                diff_str = diff.toString() + "%";
+            }
+            diff_percentage.push(diff_str);
+        }
+    }
+    if (diff_column == true) {
+        markdown = "## Execution Sample\n | Program | Execution Time | % |\n | --- | --- | --- |\n";
+        for (let i = 0; i < diff_percentage.length; i++) {
+            markdown = markdown.concat(" | ", executionReports[i].artifact_name, " | ", executionReports[i].time, " | ", diff_percentage[i], " |\n");
+        }
+    }
+    else {
+        markdown = (0, exports.formatExecutionReport)(executionReports);
+    }
+    return markdown;
+};
+exports.computeExecutionDiff = computeExecutionDiff;
+
+
+/***/ }),
+
 /***/ 4822:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -122,10 +188,12 @@ const artifact = __importStar(__nccwpck_require__(2605));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const compilation_report_1 = __nccwpck_require__(6423);
+const execution_report_1 = __nccwpck_require__(1233);
 const report_1 = __nccwpck_require__(8269);
 const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
 const memory_report = core.getInput("memory_report");
+const execution_report = core.getInput("execution_report");
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
 const baseBranchEscaped = baseBranch.replace(/[/\\]/g, "-");
@@ -222,11 +290,19 @@ function run() {
             referenceContent !== null && referenceContent !== void 0 ? referenceContent : (referenceContent = compareContent); // if no source reports were loaded, defaults to the current reports
             core.info("About to check memory reports");
             const isMemoryReport = memory_report === "true";
+            const isExecutionReport = execution_report === "true";
             if (isMemoryReport) {
                 core.info(`Format Memory markdown rows`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
                 const referenceReports = (0, report_1.memoryReports)(referenceContent);
                 const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent);
+                core.setOutput("markdown", markdown);
+            }
+            else if (isExecutionReport) {
+                core.info(`Format Execution report markdown rows`);
+                const compilationContent = (0, execution_report_1.executionReports)(compareContent);
+                const referenceReports = (0, execution_report_1.executionReports)(referenceContent);
+                const markdown = (0, execution_report_1.computeExecutionDiff)(referenceReports, compilationContent);
                 core.setOutput("markdown", markdown);
             }
             else {
