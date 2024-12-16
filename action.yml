@@ -31,7 +31,7 @@ inputs:
      description: States whether we want to generate a report of memory usage.
      default: false
      required: false
-  execution-report:
+  execution_report:
     description: States whether we want to generate a report of execution times.
     default: false
     required: false
