@@ -30,18 +30,8 @@ const computeCompilationDiff = (refReports, compilationReports) => {
             if (refReports[i].artifact_name === compilationReports[i].artifact_name) {
                 const compTimeString = compilationReports[i].time;
                 const refTimeString = refReports[i].time;
-                const compTimeSegments = compTimeString.split("m");
-                const refTimeSegments = refTimeString.split("m");
-                const minutesString = compTimeSegments[0];
-                const refMinutesString = refTimeSegments[0];
-                const compMinutesValue = parseInt(minutesString);
-                const refMinutesValue = parseInt(refMinutesString);
-                const secondsString = compTimeSegments[1];
-                const compSecondsValue = parseFloat(secondsString.substring(0, secondsString.length - 1));
-                const compSeconds = compMinutesValue * 60 + compSecondsValue;
-                const refSecondsString = refTimeSegments[1];
-                const refSecondsValue = parseFloat(refSecondsString.substring(0, refSecondsString.length - 1));
-                const refSeconds = refMinutesValue * 60 + refSecondsValue;
+                const compSeconds = parseFloat(compTimeString.substring(0, compTimeString.length - 1));
+                const refSeconds = parseFloat(refTimeString.substring(0, refTimeString.length - 1));
                 const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
                 if (diff != 0) {
                     diff_column = true;
@@ -96,18 +86,8 @@ const computeExecutionDiff = (refReports, executionReports) => {
             if (refReports[i].artifact_name === executionReports[i].artifact_name) {
                 const compTimeString = executionReports[i].time;
                 const refTimeString = refReports[i].time;
-                const compTimeSegments = compTimeString.split("m");
-                const refTimeSegments = refTimeString.split("m");
-                const minutesString = compTimeSegments[0];
-                const refMinutesString = refTimeSegments[0];
-                const compMinutesValue = parseInt(minutesString);
-                const refMinutesValue = parseInt(refMinutesString);
-                const secondsString = compTimeSegments[1];
-                const compSecondsValue = parseFloat(secondsString.substring(0, secondsString.length - 1));
-                const compSeconds = compMinutesValue * 60 + compSecondsValue;
-                const refSecondsString = refTimeSegments[1];
-                const refSecondsValue = parseFloat(refSecondsString.substring(0, refSecondsString.length - 1));
-                const refSeconds = refMinutesValue * 60 + refSecondsValue;
+                const compSeconds = parseFloat(compTimeString.substring(0, compTimeString.length - 1));
+                const refSeconds = parseFloat(refTimeString.substring(0, refTimeString.length - 1));
                 const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
                 if (diff != 0) {
                     diff_column = true;
