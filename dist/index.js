@@ -20,7 +20,7 @@ const formatCompilationReport = (compilationReports) => {
     return markdown;
 };
 exports.formatCompilationReport = formatCompilationReport;
-const computeCompilationDiff = (refReports, compilationReports) => {
+const computeCompilationDiff = (refReports, compilationReports, header) => {
     let markdown = "";
     const diff_percentage = [];
     let diff_column = false;
@@ -42,7 +42,7 @@ const computeCompilationDiff = (refReports, compilationReports) => {
         }
     }
     if (diff_column == true) {
-        markdown = "## Compilation Sample\n | Program | Compilation Time | % |\n | --- | --- | --- |\n";
+        markdown = `## ${header}\n | Program | Compilation Time | % |\n | --- | --- | --- |\n`;
         for (let i = 0; i < diff_percentage.length; i++) {
             markdown = markdown.concat(" | ", compilationReports[i].artifact_name, " | ", compilationReports[i].time, " | ", diff_percentage[i], " |\n");
         }
@@ -76,7 +76,7 @@ const formatExecutionReport = (executionReports) => {
     return markdown;
 };
 exports.formatExecutionReport = formatExecutionReport;
-const computeExecutionDiff = (refReports, executionReports) => {
+const computeExecutionDiff = (refReports, executionReports, header) => {
     let markdown = "";
     const diff_percentage = [];
     let diff_column = false;
@@ -86,8 +86,18 @@ const computeExecutionDiff = (refReports, executionReports) => {
             if (refReports[i].artifact_name === executionReports[i].artifact_name) {
                 const compTimeString = executionReports[i].time;
                 const refTimeString = refReports[i].time;
-                const compSeconds = parseFloat(compTimeString.substring(0, compTimeString.length - 1));
-                const refSeconds = parseFloat(refTimeString.substring(0, refTimeString.length - 1));
+                const compTimeSegments = compTimeString.split("m");
+                const refTimeSegments = refTimeString.split("m");
+                const minutesString = compTimeSegments[0];
+                const refMinutesString = refTimeSegments[0];
+                const compMinutesValue = parseInt(minutesString);
+                const refMinutesValue = parseInt(refMinutesString);
+                const secondsString = compTimeSegments[1];
+                const compSecondsValue = parseFloat(secondsString.substring(0, secondsString.length - 1));
+                const compSeconds = compMinutesValue * 60 + compSecondsValue;
+                const refSecondsString = refTimeSegments[1];
+                const refSecondsValue = parseFloat(refSecondsString.substring(0, refSecondsString.length - 1));
+                const refSeconds = refMinutesValue * 60 + refSecondsValue;
                 const diff = Math.floor(((compSeconds - refSeconds) / refSeconds) * 100);
                 if (diff != 0) {
                     diff_column = true;
@@ -98,7 +108,7 @@ const computeExecutionDiff = (refReports, executionReports) => {
         }
     }
     if (diff_column == true) {
-        markdown = "## Execution Sample\n | Program | Execution Time | % |\n | --- | --- | --- |\n";
+        markdown = `## ${header}\n | Program | Execution Time | % |\n | --- | --- | --- |\n`;
         for (let i = 0; i < diff_percentage.length; i++) {
             markdown = markdown.concat(" | ", executionReports[i].artifact_name, " | ", executionReports[i].time, " | ", diff_percentage[i], " |\n");
         }
@@ -174,6 +184,7 @@ const token = process.env.GITHUB_TOKEN || core.getInput("token");
 const report = core.getInput("report");
 const memory_report = core.getInput("memory_report");
 const execution_report = core.getInput("execution_report");
+const header = core.getInput("header");
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
 const baseBranchEscaped = baseBranch.replace(/[/\\]/g, "-");
@@ -275,21 +286,21 @@ function run() {
                 core.info(`Format Memory markdown rows`);
                 const memoryContent = (0, report_1.memoryReports)(compareContent);
                 const referenceReports = (0, report_1.memoryReports)(referenceContent);
-                const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent);
+                const markdown = (0, report_1.computeMemoryDiff)(referenceReports, memoryContent, header);
                 core.setOutput("markdown", markdown);
             }
             else if (isExecutionReport) {
                 core.info(`Format Execution report markdown rows`);
                 const compilationContent = (0, execution_report_1.executionReports)(compareContent);
                 const referenceReports = (0, execution_report_1.executionReports)(referenceContent);
-                const markdown = (0, execution_report_1.computeExecutionDiff)(referenceReports, compilationContent);
+                const markdown = (0, execution_report_1.computeExecutionDiff)(referenceReports, compilationContent, header);
                 core.setOutput("markdown", markdown);
             }
             else {
                 core.info(`Format Compilation report markdown rows`);
                 const compilationContent = (0, report_1.compilationReports)(compareContent);
                 const referenceReports = (0, report_1.compilationReports)(referenceContent);
-                const markdown = (0, compilation_report_1.computeCompilationDiff)(referenceReports, compilationContent);
+                const markdown = (0, compilation_report_1.computeCompilationDiff)(referenceReports, compilationContent, header);
                 core.setOutput("markdown", markdown);
             }
             core.endGroup();
@@ -351,7 +362,7 @@ const formatMemoryReport = (memReports) => {
     return markdown;
 };
 exports.formatMemoryReport = formatMemoryReport;
-const computeMemoryDiff = (refReports, memReports) => {
+const computeMemoryDiff = (refReports, memReports, header) => {
     let markdown = "";
     const diff_percentage = [];
     let diff_column = false;
@@ -379,7 +390,7 @@ const computeMemoryDiff = (refReports, memReports) => {
         }
     }
     if (diff_column == true) {
-        markdown = "## Peak Memory Sample\n | Program | Peak Memory | % |\n | --- | --- | --- |\n";
+        markdown = `## ${header}\n | Program | Peak Memory | % |\n | --- | --- | --- |\n`;
         for (let i = 0; i < memReports.length; i++) {
             markdown = markdown.concat(" | ", memReports[i].artifact_name, " | ", memReports[i].peak_memory, " | ", diff_percentage[i], " |\n");
         }
