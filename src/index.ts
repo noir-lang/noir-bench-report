@@ -15,6 +15,8 @@ const report = core.getInput("report");
 const memory_report = core.getInput("memory_report");
 const execution_report = core.getInput("execution_report");
 
+const header = core.getInput("header");
+
 const baseBranch = core.getInput("base");
 const headBranch = core.getInput("head");
 
@@ -112,19 +114,19 @@ async function run() {
       core.info(`Format Memory markdown rows`);
       const memoryContent = memoryReports(compareContent);
       const referenceReports = memoryReports(referenceContent);
-      const markdown = computeMemoryDiff(referenceReports, memoryContent);
+      const markdown = computeMemoryDiff(referenceReports, memoryContent, header);
       core.setOutput("markdown", markdown);
     } else if (isExecutionReport) {
       core.info(`Format Execution report markdown rows`);
       const compilationContent = executionReports(compareContent);
       const referenceReports = executionReports(referenceContent);
-      const markdown = computeExecutionDiff(referenceReports, compilationContent);
+      const markdown = computeExecutionDiff(referenceReports, compilationContent, header);
       core.setOutput("markdown", markdown);
     } else {
       core.info(`Format Compilation report markdown rows`);
       const compilationContent = compilationReports(compareContent);
       const referenceReports = compilationReports(referenceContent);
-      const markdown = computeCompilationDiff(referenceReports, compilationContent);
+      const markdown = computeCompilationDiff(referenceReports, compilationContent, header);
       core.setOutput("markdown", markdown);
     }
 

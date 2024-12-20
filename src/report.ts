@@ -37,7 +37,8 @@ export const formatMemoryReport = (memReports: MemoryReport[]): string => {
 
 export const computeMemoryDiff = (
   refReports: MemoryReport[],
-  memReports: MemoryReport[]
+  memReports: MemoryReport[],
+  header: string
 ): string => {
   let markdown = "";
   const diff_percentage = [];
@@ -66,7 +67,7 @@ export const computeMemoryDiff = (
   }
 
   if (diff_column == true) {
-    markdown = "## Peak Memory Sample\n | Program | Peak Memory | % |\n | --- | --- | --- |\n";
+    markdown = `## ${header}\n | Program | Peak Memory | % |\n | --- | --- | --- |\n`;
     for (let i = 0; i < memReports.length; i++) {
       markdown = markdown.concat(
         " | ",
