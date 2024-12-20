@@ -21,7 +21,7 @@ describe("Markdown format", () => {
     const ref_2_Reports = compilationReports(ref_2_Content);
     expect(ref_1_Reports.length).toBeGreaterThan(0);
     expect(ref_1_Reports.length).toBe(ref_2_Reports.length);
-    const markdown = computeCompilationDiff(ref_1_Reports, ref_2_Reports);
+    const markdown = computeCompilationDiff(ref_1_Reports, ref_2_Reports, "Compilation report");
     fs.writeFileSync("tests/mocks/1-2-compilation.md", markdown);
     expect(markdown.length).toBeGreaterThan(0);
   });

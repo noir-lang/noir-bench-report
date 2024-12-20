@@ -20,7 +20,7 @@ describe("Markdown format", () => {
     const ref_2_Reports = memoryReports(ref_2_Content);
     expect(ref_1_Reports.length).toBeGreaterThan(0);
     expect(ref_1_Reports.length).toBe(ref_2_Reports.length);
-    const markdown = computeMemoryDiff(ref_1_Reports, ref_2_Reports);
+    const markdown = computeMemoryDiff(ref_1_Reports, ref_2_Reports, "Peak memory sample");
     expect(markdown.length).toBeGreaterThan(0);
   });
 });
