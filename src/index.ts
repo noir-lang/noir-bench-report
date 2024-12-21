@@ -106,7 +106,7 @@ async function run() {
   try {
     core.startGroup("Load reports");
     referenceContent ??= compareContent; // if no source reports were loaded, defaults to the current reports
-    core.info("About to check memory reports");
+    core.info("About to check reports");
 
     const isMemoryReport = memory_report === "true";
     const isExecutionReport = execution_report === "true";
