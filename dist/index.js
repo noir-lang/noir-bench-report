@@ -12,8 +12,8 @@ const compilationReports = (content) => {
     return JSON.parse(content).compilation_reports;
 };
 exports.compilationReports = compilationReports;
-const formatCompilationReport = (compilationReports) => {
-    let markdown = "## Compilation Sample\n | Program | Compilation Time |\n | --- | --- |\n";
+const formatCompilationReport = (compilationReports, header) => {
+    let markdown = `## ${header}\n | Program | Compilation Time |\n | --- | --- |\n`;
     for (let i = 0; i < compilationReports.length; i++) {
         markdown = markdown.concat(" | ", compilationReports[i].artifact_name, " | ", compilationReports[i].time, " |\n");
     }
@@ -48,7 +48,7 @@ const computeCompilationDiff = (refReports, compilationReports, header) => {
         }
     }
     else {
-        markdown = (0, exports.formatCompilationReport)(compilationReports);
+        markdown = (0, exports.formatCompilationReport)(compilationReports, header);
     }
     return markdown;
 };
@@ -68,8 +68,8 @@ const executionReports = (content) => {
     return JSON.parse(content).execution_reports;
 };
 exports.executionReports = executionReports;
-const formatExecutionReport = (executionReports) => {
-    let markdown = "## Execution Sample\n | Program | Execution Time |\n | --- | --- |\n";
+const formatExecutionReport = (executionReports, header) => {
+    let markdown = `## ${header}\n | Program | Execution Time |\n | --- | --- |\n`;
     for (let i = 0; i < executionReports.length; i++) {
         markdown = markdown.concat(" | ", executionReports[i].artifact_name, " | ", executionReports[i].time, " |\n");
     }
@@ -114,7 +114,7 @@ const computeExecutionDiff = (refReports, executionReports, header) => {
         }
     }
     else {
-        markdown = (0, exports.formatExecutionReport)(executionReports);
+        markdown = (0, exports.formatExecutionReport)(executionReports, header);
     }
     return markdown;
 };
@@ -354,8 +354,8 @@ const compilationReports = (content) => {
     return JSON.parse(content).compilation_reports;
 };
 exports.compilationReports = compilationReports;
-const formatMemoryReport = (memReports) => {
-    let markdown = "## Peak Memory Sample\n | Program | Peak Memory |\n | --- | --- |\n";
+const formatMemoryReport = (memReports, header) => {
+    let markdown = `## ${header}\n | Program | Peak Memory |\n | --- | --- |\n`;
     for (let i = 0; i < memReports.length; i++) {
         markdown = markdown.concat(" | ", memReports[i].artifact_name, " | ", memReports[i].peak_memory, " |\n");
     }
@@ -396,7 +396,7 @@ const computeMemoryDiff = (refReports, memReports, header) => {
         }
     }
     else {
-        markdown = (0, exports.formatMemoryReport)(memReports);
+        markdown = (0, exports.formatMemoryReport)(memReports, header);
     }
     return markdown;
 };

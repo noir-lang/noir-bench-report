@@ -4,8 +4,11 @@ export const executionReports = (content: string): ExecutionReport[] => {
   return JSON.parse(content).execution_reports;
 };
 
-export const formatExecutionReport = (executionReports: ExecutionReport[]): string => {
-  let markdown = "## Execution Sample\n | Program | Execution Time |\n | --- | --- |\n";
+export const formatExecutionReport = (
+  executionReports: ExecutionReport[],
+  header: string
+): string => {
+  let markdown = `## ${header}\n | Program | Execution Time |\n | --- | --- |\n`;
   for (let i = 0; i < executionReports.length; i++) {
     markdown = markdown.concat(
       " | ",
@@ -76,7 +79,7 @@ export const computeExecutionDiff = (
       );
     }
   } else {
-    markdown = formatExecutionReport(executionReports);
+    markdown = formatExecutionReport(executionReports, header);
   }
 
   return markdown;

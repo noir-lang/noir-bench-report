@@ -11,7 +11,7 @@ const memReports = memoryReports(srcContent);
 describe("Markdown format", () => {
   it("should generate markdown format", () => {
     expect(memReports.length).toBeGreaterThan(0);
-    const markdown = formatMemoryReport(memReports);
+    const markdown = formatMemoryReport(memReports, "Peak memory samples");
     expect(markdown.length).toBeGreaterThan(0);
   });
 

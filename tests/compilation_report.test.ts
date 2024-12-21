@@ -12,7 +12,7 @@ const compReports = compilationReports(srcContent);
 describe("Markdown format", () => {
   it("should generate markdown format", () => {
     expect(compReports.length).toBeGreaterThan(0);
-    const markdown = formatCompilationReport(compReports);
+    const markdown = formatCompilationReport(compReports, "Compilation report");
     expect(markdown.length).toBeGreaterThan(0);
   });
 
