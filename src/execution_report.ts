@@ -4,8 +4,11 @@ export const executionReports = (content: string): ExecutionReport[] => {
   return JSON.parse(content).execution_reports;
 };
 
-export const formatExecutionReport = (executionReports: ExecutionReport[]): string => {
-  let markdown = "## Execution Sample\n | Program | Execution Time |\n | --- | --- |\n";
+export const formatExecutionReport = (
+  executionReports: ExecutionReport[],
+  header: string
+): string => {
+  let markdown = `## ${header}\n | Program | Execution Time |\n | --- | --- |\n`;
   for (let i = 0; i < executionReports.length; i++) {
     markdown = markdown.concat(
       " | ",
@@ -20,7 +23,8 @@ export const formatExecutionReport = (executionReports: ExecutionReport[]): stri
 
 export const computeExecutionDiff = (
   refReports: ExecutionReport[],
-  executionReports: ExecutionReport[]
+  executionReports: ExecutionReport[],
+  header: string
 ): string => {
   let markdown = "";
   const diff_percentage = [];
@@ -47,7 +51,7 @@ export const computeExecutionDiff = (
   }
 
   if (diff_column == true) {
-    markdown = "## Execution Sample\n | Program | Execution Time | % |\n | --- | --- | --- |\n";
+    markdown = `## ${header}\n | Program | Execution Time | % |\n | --- | --- | --- |\n`;
     for (let i = 0; i < diff_percentage.length; i++) {
       markdown = markdown.concat(
         " | ",
@@ -60,7 +64,7 @@ export const computeExecutionDiff = (
       );
     }
   } else {
-    markdown = formatExecutionReport(executionReports);
+    markdown = formatExecutionReport(executionReports, header);
   }
 
   return markdown;

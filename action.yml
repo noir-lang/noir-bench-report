@@ -25,7 +25,7 @@ inputs:
   header:
     description: The top section displayed in the markdown output.
     default: |
-      # Changes to circuit sizes
+      # Peak Memory Sample
     required: false
   memory_report:
      description: States whether we want to generate a report of memory usage.

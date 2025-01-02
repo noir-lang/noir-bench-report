@@ -4,8 +4,11 @@ export const compilationReports = (content: string): CompilationReport[] => {
   return JSON.parse(content).compilation_reports;
 };
 
-export const formatCompilationReport = (compilationReports: CompilationReport[]): string => {
-  let markdown = "## Compilation Sample\n | Program | Compilation Time |\n | --- | --- |\n";
+export const formatCompilationReport = (
+  compilationReports: CompilationReport[],
+  header: string
+): string => {
+  let markdown = `## ${header}\n | Program | Compilation Time |\n | --- | --- |\n`;
   for (let i = 0; i < compilationReports.length; i++) {
     markdown = markdown.concat(
       " | ",
@@ -20,7 +23,8 @@ export const formatCompilationReport = (compilationReports: CompilationReport[])
 
 export const computeCompilationDiff = (
   refReports: CompilationReport[],
-  compilationReports: CompilationReport[]
+  compilationReports: CompilationReport[],
+  header: string
 ): string => {
   let markdown = "";
   const diff_percentage = [];
@@ -47,7 +51,7 @@ export const computeCompilationDiff = (
   }
 
   if (diff_column == true) {
-    markdown = "## Compilation Sample\n | Program | Compilation Time | % |\n | --- | --- | --- |\n";
+    markdown = `## ${header}\n | Program | Compilation Time | % |\n | --- | --- | --- |\n`;
     for (let i = 0; i < diff_percentage.length; i++) {
       markdown = markdown.concat(
         " | ",
@@ -60,7 +64,7 @@ export const computeCompilationDiff = (
       );
     }
   } else {
-    markdown = formatCompilationReport(compilationReports);
+    markdown = formatCompilationReport(compilationReports, header);
   }
 
   return markdown;
